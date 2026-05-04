@@ -25,6 +25,7 @@ pub trait Calculus: Eval<(), Result<(), Error>> + EvalTags + Send + Sync {
 pub struct Calculations {
     nodes: HashMap<CalcId, Box<dyn Calculus>>,
     inputs_map: HashMap<IecId, Vec<CalcId>>,
+    /// Какие IecId генерирует этот CalcId
     outputs_map: HashMap<CalcId, Vec<IecId>>,
     calculation_graph: Vec<CalcId>,
     dbg: Dbg,
@@ -96,12 +97,13 @@ impl Calculations {
         let mut in_degree: HashMap<CalcId, usize> = nodes.keys().map(|id| (*id, 0)).collect();
         let mut adj_list: HashMap<CalcId, Vec<CalcId>> = HashMap::new();
         for (calc_id, calc) in nodes {
-            let tags = calc.tags();
-            for out_key in tags.outputs {
-                if let Some(downstream_calcs) = inputs_map.get(&IecId(out_key)) {
-                    for downstream in downstream_calcs {
-                        adj_list.entry(*calc_id).or_default().push(*downstream);
-                        *in_degree.get_mut(downstream).unwrap() += 1;
+            if let Some(out_keys) = outputs_map.get(calc_id) {
+                for out_key in out_keys {
+                    if let Some(downstream_calcs) = inputs_map.get(&IecId(out_key)) {
+                        for downstream in downstream_calcs {
+                            adj_list.entry(*calc_id).or_default().push(*downstream);
+                            *in_degree.get_mut(downstream).unwrap() += 1;
+                        }
                     }
                 }
             }
@@ -132,6 +134,10 @@ impl Calculations {
 }
 //
 impl Eval<Event, Result<(), Error>> for Calculations {
+    ///
+    /// ### Автоматический пересчет
+    /// - Основываясб на изменившихся значениях посторит и запустит план вычислений
+    /// - `event` - евент с изменившимися значениями на фронте
     fn eval(&self, event: Event) -> Result<(), Error> {
         let changes: Vec<(IecId, serde_json::Value)> = vec![];    // To be read from received `Event`
         let calculations = self.build_plan(changes.iter().map(|(iec_id, _)| iec_id.to_owned()));
