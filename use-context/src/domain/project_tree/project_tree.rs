@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 use sal_core::{dbg::Dbg, error::Error};
 use sal_sync::{kernel::state::ExitNotify, services::{Service, entity::{Name, Object}}, sync::{Handles, Owner}, thread_pool::Scheduler};
 
-use crate::{domain::{Event, ProjectNodeStatus, ProjectNodes, ProjectTreeConf}, kernel::types::channel::{self, Receiver, RecvTimeoutError, Sender} };
+use crate::{domain::{CalcId, Event, ProjectNodeStatus, ProjectNodes, ProjectTreeConf}, kernel::types::channel::{self, Receiver, RecvTimeoutError, Sender} };
 
 ///
 /// ### Service | ProjectTree
@@ -17,10 +17,10 @@ pub struct ProjectTree {
     conf: ProjectTreeConf,
     /// Канал для отправки событий слиенту
     client_link: Owner<Sender<Event>>,
-    /// Внешний кончик канала, в который расветы будут отправлять статусы нод
-    link_tx: Sender<(String, ProjectNodeStatus)>,
+    /// Внешний кончик канала, в который расчеты будут отправлять статусы нод
+    link_tx: Sender<(CalcId, ProjectNodeStatus)>,
     /// Тут получаем статусы нод от расчетов
-    link_rx: Owner<Receiver<(String, ProjectNodeStatus)>>,
+    link_rx: Owner<Receiver<(CalcId, ProjectNodeStatus)>>,
     nodes: Arc<ProjectNodes>,
     scheduler: Scheduler,
     handles: Handles<()>,
@@ -58,6 +58,11 @@ impl ProjectTree {
         nodes.into_iter().map(|(iec_id, node)| {
             Event {}
         }).collect()
+    }
+    ///
+    /// Возвращает link для обновления событий
+    pub fn link(&self) -> Sender<(CalcId, ProjectNodeStatus)> {
+        self.link_tx.clone()
     }
 }
 //

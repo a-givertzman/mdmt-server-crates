@@ -3,7 +3,7 @@ use std::sync::Arc;
 use arc_swap::ArcSwap;
 use sal_core::dbg::Dbg;
 
-use crate::{domain::{ProjectNode, ProjectNodeStatus}, kernel::types::fx_map::FxDashMap};
+use crate::{domain::{CalcId, ProjectNode, ProjectNodeStatus}, kernel::types::fx_map::FxDashMap};
 
 ///
 /// ### Коллекция узлов дерева проекта
@@ -29,7 +29,7 @@ impl ProjectNodes {
     /// - В каждом цикле (64...120мс) вычитываться полностью.
     /// - Пересчет делаем по всем полученным событиям
     /// - Затем отправка статусов в UI
-    pub fn update_status(&self, node_id: String, node_status: ProjectNodeStatus) {
+    pub fn update_status(&self, node_id: CalcId, node_status: ProjectNodeStatus) {
         
     }
     ///

@@ -59,7 +59,7 @@ fn main() -> Result<(), Error> {
         ),
     ));
     ua_calc.eval(()).unwrap();
-    let calculations = Calculations::new(&dbg, vec![
+    let calculations = Calculations::new(&dbg, project_tree.link(), vec![
     ]);
     let (send, _) = channel::unbounded();
     let client = Arc::new(ApiClient {});
