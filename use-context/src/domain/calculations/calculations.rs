@@ -99,7 +99,7 @@ impl Calculations {
         for (calc_id, calc) in nodes {
             if let Some(out_keys) = outputs_map.get(calc_id) {
                 for out_key in out_keys {
-                    if let Some(downstream_calcs) = inputs_map.get(&IecId(out_key)) {
+                    if let Some(downstream_calcs) = inputs_map.get(&out_key) {
                         for downstream in downstream_calcs {
                             adj_list.entry(*calc_id).or_default().push(*downstream);
                             *in_degree.get_mut(downstream).unwrap() += 1;
