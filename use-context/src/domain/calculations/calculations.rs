@@ -32,7 +32,8 @@ pub struct Calculations {
 impl Calculations {
     ///
     /// Конструирует граф расчетов и проверяет его на отсутствие циклов.
-    pub fn new(parent: impl Into<String>, calculuses: Vec<Box<dyn Calculus>>) -> Result<Self, String> {
+    pub fn new(parent: impl Into<String>, calculuses: Vec<Box<dyn Calculus>>) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "Calculations");
         let mut nodes = HashMap::new();
         let mut inputs_map: HashMap<IecId, Vec<CalcId>> = HashMap::new();
         let mut outputs_map: HashMap<CalcId, Vec<IecId>> = HashMap::new();
@@ -40,25 +41,26 @@ impl Calculations {
             let id = calc.id();
             let tags = calc.tags();
             for input in tags.inputs {
-                inputs_map.entry(IecId(input)).or_default().push(id.clone());
+                inputs_map.entry(IecId(input)).or_default().push(id);
             }
             for output in tags.outputs {
-                outputs_map.entry(CalcId(output)).or_default().push(id.clone());
+                outputs_map.entry(CalcId(output)).or_default().push(IecId(id.0));
             }
             nodes.insert(id, calc);
         }
-        let calculation_graph = Self::build_topological_order(&nodes, &inputs_map, &outputs_map)?;
+        let calculation_graph = Self::build_topology(&nodes, &inputs_map, &outputs_map, &dbg)
+            .map_err(|err| Error::new(&dbg, "new").pass(err))?;
         Ok(Self {
             nodes,
             inputs_map,
             outputs_map,
             calculation_graph,
-            dbg: Dbg::new(parent, "Calculations"),
+            dbg,
         })
     }
     ///
     /// Формирует отсортированный план выполнения на основе измененных ключей.
-    pub fn build_plan(&self, changes: impl Iterator<Item = IecId>) -> Vec<&dyn Calculus> {
+    fn build_plan(&self, changes: impl Iterator<Item = IecId>) -> Vec<&dyn Calculus> {
         let mut affected_calcs = HashSet::new();
         let mut queue = VecDeque::new();
         for key in changes {
@@ -85,11 +87,12 @@ impl Calculations {
     }
     ///
     /// Построение глобального порядка (алгоритм Кана).
-    fn build_topological_order(
+    fn build_topology(
         nodes: &HashMap<CalcId, Box<dyn Calculus>>,
         inputs_map: &HashMap<IecId, Vec<CalcId>>,
         outputs_map: &HashMap<CalcId, Vec<IecId>>,
-    ) -> Result<Vec<CalcId>, String> {
+        dbg: &Dbg,
+    ) -> Result<Vec<CalcId>, Error> {
         let mut in_degree: HashMap<CalcId, usize> = nodes.keys().map(|id| (*id, 0)).collect();
         let mut adj_list: HashMap<CalcId, Vec<CalcId>> = HashMap::new();
         for (calc_id, calc) in nodes {
@@ -122,7 +125,7 @@ impl Calculations {
             }
         }
         if order.len() != nodes.len() {
-            return Err("Обнаружен цикл в графе вычислений. Проверьте связи IecId.".to_string());
+            return Err(Error::new(dbg, "build_topology").err("Обнаружен цикл в графе вычислений. Проверьте связи расчетов"));
         }
         Ok(order)
     }

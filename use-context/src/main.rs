@@ -10,7 +10,7 @@ use sal_sync::{sync::channel, thread_pool::ThreadPool};
 
 use crate::{
     algorithm::{ApparentFrequenciesCtx, Bound, Bounds, Position, UnitAreaCtx, UnitAreaEval},
-    domain::{ApiClient, Conf, Context, ContextRead, ContextWrite, EvalTags, IecId, Initial, InitialCtx, ProjectTree, Properties},
+    domain::{ApiClient, Calculations, Conf, Context, ContextRead, ContextWrite, EvalTags, IecId, Initial, InitialCtx, ProjectTree, Properties},
     kernel::Eval,
 };
 
@@ -51,14 +51,16 @@ fn main() -> Result<(), Error> {
         ]
     )?;
     let ctx = Arc::new(Context::new(InitialCtx::new(ship_id, project_id, bounds)));
-    // let calculus = UnitAreaEval::new(
-    //     &dbg,
-    //     Initial::new(
-    //         &dbg,
-    //         ctx.clone(),
-    //     ),
-    // );
-    // calculus.eval(()).unwrap();
+    let ua_calc = Box::new(UnitAreaEval::new(
+        &dbg,
+        Initial::new(
+            &dbg,
+            ctx.clone(),
+        ),
+    ));
+    ua_calc.eval(()).unwrap();
+    let calculations = Calculations::new(&dbg, vec![
+    ]);
     let (send, _) = channel::unbounded();
     let client = Arc::new(ApiClient {});
     log::debug!("All prepared, starting threads...:");
