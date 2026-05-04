@@ -110,8 +110,8 @@ fn main() -> Result<(), Error> {
                 log::warn!("Thread 2 | Error: {err}");
             }
     }});
-    let tags = UnitAreaEval::tags();
-    log::info!("UnitArea tags: {:?}", tags);
+    // let tags = UnitAreaEval::new();
+    // log::info!("UnitArea tags: {:?}", tags);
     h1.join().unwrap();
     h2.join().unwrap();
     println!("Context: {:#?}", ctx);
