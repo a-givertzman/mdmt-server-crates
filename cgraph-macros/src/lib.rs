@@ -243,10 +243,10 @@ pub fn eval_depend(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         #ast
         impl crate::domain::EvalTags for #self_ty {
-            fn tags() -> crate::domain::CalculationTags {
+            fn tags(&self) -> crate::domain::CalculationTags {
                 crate::domain::CalculationTags {
-                    read: vec![#(#read_tags),*],
-                    write: vec![#(#write_tags),*],
+                    inputs: vec![#(#read_tags),*],
+                    outputs: vec![#(#write_tags),*],
                 }
             }
         }

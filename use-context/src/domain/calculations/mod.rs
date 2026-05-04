@@ -13,8 +13,9 @@ pub use calculations::*;
 /// Calculation Dependency contains IecKey's of the members accessed on the context for the calculation sequence
 #[derive(Debug)]
 pub struct CalculationTags {
-    /// members read from the context
+    /// IecId's, which calculation reads from context.
     pub inputs: Vec<&'static str>,
+    /// IecId's, which calculation returns, writes into context.
     /// members stored into the context
     pub outputs: Vec<&'static str>,
 }

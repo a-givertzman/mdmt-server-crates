@@ -14,10 +14,10 @@ debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "
 api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.2.2" }
 sal-core = { git = "https://github.com/a-givertzman/rust-sal-core.git", tag = "0.1.0" }
 sal-sync = { git = "https://github.com/a-givertzman/rust-sal-sync.git", tag = "0.3.1" }
-context-macros = { git = "https://github.com/a-givertzman/mdmt-architecture.git", tag = "0.1.0" }
-# context-macros = { path = "../context-macros" }
-cgraph-macros = { git = "https://github.com/a-givertzman/mdmt-architecture.git", tag = "0.1.0" }
-# cgraph-macros = { path = "../cgraph-macros" }
+# context-macros = { git = "https://github.com/a-givertzman/mdmt-architecture.git", tag = "0.1.0" }
+context-macros = { path = "../context-macros" }
+# cgraph-macros = { git = "https://github.com/a-givertzman/mdmt-architecture.git", tag = "0.1.0" }
+cgraph-macros = { path = "../cgraph-macros" }
 
 #
 # Serde

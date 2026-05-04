@@ -264,16 +264,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cgraph-macros"
-version = "0.1.0"
-source = "git+https://github.com/a-givertzman/mdmt-architecture.git?tag=0.1.0#8dcea26db16d6b0cc69e49901dda9b9851c2129e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "chacha20"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -346,15 +336,6 @@ checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
 [[package]]
 name = "context-macros"
 version = "0.1.0"
-dependencies = [
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
-name = "context-macros"
-version = "0.1.0"
-source = "git+https://github.com/a-givertzman/mdmt-architecture.git?tag=0.1.0#8dcea26db16d6b0cc69e49901dda9b9851c2129e"
 dependencies = [
  "quote",
  "syn 2.0.117",
@@ -503,9 +484,9 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.11.2"
+version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4850db49bf08e663084f7fb5c87d202ef91a3907271aff24a94eb97ff039153c"
+checksum = "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2"
 dependencies = [
  "block-buffer",
  "const-oid",
@@ -1076,8 +1057,8 @@ dependencies = [
  "api-tools 0.2.2",
  "arc-swap",
  "bincode",
- "cgraph-macros 0.1.0 (git+https://github.com/a-givertzman/mdmt-architecture.git?tag=0.1.0)",
- "context-macros 0.1.0 (git+https://github.com/a-givertzman/mdmt-architecture.git?tag=0.1.0)",
+ "cgraph-macros",
+ "context-macros",
  "debugging 0.0.1 (git+https://github.com/a-givertzman/rust-debuging.git?tag=0.1.0)",
  "get-size",
  "kanal",
@@ -1804,9 +1785,9 @@ dependencies = [
 
 [[package]]
 name = "siphasher"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2aa850e253778c88a04c3d7323b043aeda9d3e30d5971937c1855769763678e"
+checksum = "8ee5873ec9cce0195efcb7a4e9507a04cd49aec9c83d0389df45b1ef7ba2e649"
 
 [[package]]
 name = "slab"
