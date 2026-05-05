@@ -30,7 +30,7 @@ pub struct CalculationGraph {
     /// Список смежности для быстрого поиска зависимых потомков
     adj_list: HashMap<CalcId, Vec<CalcId>>,
     /// Глобально отсортированный порядок выполнения
-    calculation_graph: Vec<CalcId>,
+    global_order: Vec<CalcId>,
     dbg: Dbg,
 }
 impl CalculationGraph {
@@ -52,14 +52,14 @@ impl CalculationGraph {
             }
             nodes.insert(id, calc);
         }
-        let (calculation_graph, adj_list) = Self::build_topology(&nodes, &inputs_map, &outputs_map, &dbg)
+        let (global_order, adj_list) = Self::build_topology(&nodes, &inputs_map, &outputs_map, &dbg)
             .map_err(|err| Error::new(&dbg, "new").pass(err))?;
         Ok(Self {
             nodes,
             inputs_map,
             outputs_map,
             adj_list,
-            calculation_graph,
+            global_order,
             dbg,
         })
     }
@@ -70,7 +70,7 @@ impl CalculationGraph {
     }
     ///
     /// Формирует отсортированный план выполнения на основе изменившихся ключей.
-    pub fn plan(&self, changes: impl Iterator<Item = IecId>) -> Vec<&dyn Calculus> {
+    pub(super) fn plan(&self, changes: impl Iterator<Item = IecId>) -> Vec<&dyn Calculus> {
         let mut affected_calcs = HashSet::new();
         let mut queue = VecDeque::new();
         for key in changes {
@@ -89,7 +89,7 @@ impl CalculationGraph {
                 }
             }
         }
-        self.calculation_graph
+        self.global_order
             .iter()
             .filter(|id| affected_calcs.contains(*id))
             .filter_map(|id| self.nodes.get(id).map(|c| c.as_ref()))
