@@ -16,7 +16,7 @@ impl Calculations {
     ///
     /// Конструирует Диспетчер расчетов и проверяет граф на отсутствие циклов.
     pub fn new(parent: impl Into<String>, tree_link: Sender<(CalcId, ProjectNodeStatus)>, calculuses: impl Iterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "CalculationGraph");
+        let dbg = Dbg::new(parent, "calculations");
         let calculation_graph = CalculationGraph::new(&dbg, calculuses)
             .map_err(|err| Error::new(&dbg, "new").pass(err))?;
         Ok(Self {
