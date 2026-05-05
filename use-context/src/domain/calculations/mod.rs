@@ -4,8 +4,10 @@
 //! 
 //! 
 mod calculations;
+mod calculation_graph;
 
 pub use calculations::*;
+pub use calculation_graph::*;
 
 ///
 /// ### Calculation-Graph | Calculation Dependency
