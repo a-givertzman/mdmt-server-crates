@@ -62,7 +62,7 @@ impl Eval<(Event, Link), Result<(), Error>> for Calculations {
                     }
                 }
             } else {
-                // Расчет завершен успешно
+                // Расчет вернул ошибку
                 _ = self.proj_tree_link.send((calc_id, ProjectNodeStatus::Ready));
                 _ = link.send(todo!("Event CmdErr, Calculation {:?} failed", calc_id));
             }
