@@ -141,3 +141,94 @@ impl CalculationGraph {
         Ok((order, adj_list))
     }
 }
+///
+/// Basic tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sal_core::error::Error;
+    use crate::domain::EvalTags;
+    use crate::kernel::Eval;
+    /// Мок-объект для эмуляции расчетов
+    struct MockCalculus {
+        id: CalcId,
+        inputs: Vec<&'static str>,
+        outputs: Vec<&'static str>,
+    }
+    impl MockCalculus {
+        fn new(id: &'static str, inputs: Vec<&'static str>, outputs: Vec<&'static str>) -> Self {
+            Self { id: CalcId(id), inputs, outputs }
+        }
+    }
+    impl Calculus for MockCalculus {
+        fn id(&self) -> CalcId { self.id }
+    }
+    impl EvalTags for MockCalculus {
+        fn tags(&self) -> crate::domain::CalculationTags {
+            crate::domain::CalculationTags {
+                inputs: self.inputs.clone(),
+                outputs: self.outputs.clone(),
+            }
+        }
+    }
+    impl Eval<(), Result<(), Error>> for MockCalculus {
+        fn eval(&self, _args: ()) -> Result<(), Error> { Ok(()) }
+    }
+    #[test]
+    fn test_graph_initialization_and_order() {
+        let calc_a = Box::new(MockCalculus::new("A", vec![], vec!["val_a"])) as Box<dyn Calculus>;
+        let calc_b = Box::new(MockCalculus::new("B", vec!["val_a"], vec!["val_b"])) as Box<dyn Calculus>;
+        let calc_c = Box::new(MockCalculus::new("C", vec!["val_b"], vec!["val_c"])) as Box<dyn Calculus>;
+        let graph = CalculationGraph::new("test", vec![calc_b, calc_c, calc_a]).expect("Graph should build");
+        // Проверяем, что граф выстроил правильный топологический порядок, 
+        // несмотря на то, что в конструктор расчеты переданы вперемешку
+        let order = &graph.global_order;
+        assert_eq!(order.len(), 3);
+        let pos_a = order.iter().position(|id| *id == CalcId("A")).unwrap();
+        let pos_b = order.iter().position(|id| *id == CalcId("B")).unwrap();
+        let pos_c = order.iter().position(|id| *id == CalcId("C")).unwrap();
+        assert!(pos_a < pos_b);
+        assert!(pos_b < pos_c);
+    }
+    #[test]
+    fn test_graph_cycle_detection() {
+        // Создаем кольцевую зависимость: A -> B -> C -> A
+        let calc_a = Box::new(MockCalculus::new("A", vec!["val_c"], vec!["val_a"])) as Box<dyn Calculus>;
+        let calc_b = Box::new(MockCalculus::new("B", vec!["val_a"], vec!["val_b"])) as Box<dyn Calculus>;
+        let calc_c = Box::new(MockCalculus::new("C", vec!["val_b"], vec!["val_c"])) as Box<dyn Calculus>;
+        let result = CalculationGraph::new("test", vec![calc_a, calc_b, calc_c]);
+        assert!(result.is_err());
+        let err_msg = format!("{:?}", result.err().unwrap());
+        assert!(err_msg.contains("Обнаружен цикл в графе"));
+    }
+    #[test]
+    fn test_plan_generation() {
+        // A -> B -> C
+        // D -> C
+        let calc_a = Box::new(MockCalculus::new("A", vec!["input_root"], vec!["val_a"])) as Box<dyn Calculus>;
+        let calc_b = Box::new(MockCalculus::new("B", vec!["val_a"], vec!["val_b"])) as Box<dyn Calculus>;
+        let calc_d = Box::new(MockCalculus::new("D", vec!["input_other"], vec!["val_d"])) as Box<dyn Calculus>;
+        let calc_c = Box::new(MockCalculus::new("C", vec!["val_b", "val_d"], vec!["val_c"])) as Box<dyn Calculus>;
+        let graph = CalculationGraph::new("test", vec![calc_a, calc_b, calc_c, calc_d]).expect("Graph should build");
+        // Эмулируем изменение параметра, который генерируется узлом A
+        // Ожидаем, что пересчитаются только B и C. Узел D затронут быть не должен.
+        let changes = vec![IecId("val_a")];
+        let plan = graph.plan(changes.into_iter());
+        assert_eq!(plan.len(), 2);
+        assert_eq!(plan[0].id(), CalcId("B"));
+        assert_eq!(plan[1].id(), CalcId("C"));
+    }
+    #[test]
+    fn test_neighbors_adj_list() {
+        let calc_a = Box::new(MockCalculus::new("A", vec![], vec!["val_a"])) as Box<dyn Calculus>;
+        let calc_b = Box::new(MockCalculus::new("B", vec!["val_a"], vec!["val_b"])) as Box<dyn Calculus>;
+        let calc_c = Box::new(MockCalculus::new("C", vec!["val_a"], vec!["val_c"])) as Box<dyn Calculus>;
+        let graph = CalculationGraph::new("test", vec![calc_a, calc_b, calc_c]).expect("Graph should build");
+        // Проверяем список смежности (соседей) для каскадной инвалидации
+        let neighbors_a = graph.neighbors(&CalcId("A")).expect("A must have neighbors");
+        assert_eq!(neighbors_a.len(), 2);
+        assert!(neighbors_a.contains(&CalcId("B")));
+        assert!(neighbors_a.contains(&CalcId("C")));
+        assert!(graph.neighbors(&CalcId("B")).is_none() || graph.neighbors(&CalcId("B")).unwrap().is_empty());
+    }
+}
