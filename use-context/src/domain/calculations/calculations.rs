@@ -15,7 +15,7 @@ pub struct Calculations {
 impl Calculations {
     ///
     /// Конструирует Диспетчер расчетов и проверяет граф на отсутствие циклов.
-    pub fn new(parent: impl Into<String>, tree_link: Sender<(CalcId, ProjectNodeStatus)>, calculuses: impl Iterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
+    pub fn new(parent: impl Into<String>, tree_link: Sender<(CalcId, ProjectNodeStatus)>, calculuses: impl IntoIterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "calculations");
         let calculation_graph = CalculationGraph::new(&dbg, calculuses)
             .map_err(|err| Error::new(&dbg, "new").pass(err))?;
@@ -50,6 +50,7 @@ impl Eval<(Event, Link), Result<(), Error>> for Calculations {
             if let Err(err) = calc.eval(()) {
                 log::warn!("{}.eval | Calculation '{:?}' failed: {:?}", self.dbg, calc_id, err);
                 _ = self.proj_tree_link.send((calc_id, ProjectNodeStatus::Error));
+                _ = link.send(event.reply_err(format!("Calculation '{:?}' failed: {:?}", calc_id, err)));    // Event CmdErr, Calculation failed
                 let mut q: VecDeque<&CalcId> = VecDeque::new();
                 if let Some(neighbors) = self.calculation_graph.neighbors(&calc_id) {
                     q.extend(neighbors);
@@ -62,12 +63,11 @@ impl Eval<(Event, Link), Result<(), Error>> for Calculations {
                     }
                 }
             } else {
-                // Расчет вернул ошибку
+                // Расчет завершился успешно
                 _ = self.proj_tree_link.send((calc_id, ProjectNodeStatus::Ready));
-                _ = link.send(todo!("Event CmdErr, Calculation {:?} failed", calc_id));
+                _ = link.send(event.reply_ok());     // Event CmdCon, Calculation success
             }
         }
-        _ = link.send(todo!("Event CmdCon, Calculation Ok"));
         Ok(())
     }
 }

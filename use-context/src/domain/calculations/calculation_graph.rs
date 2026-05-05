@@ -36,7 +36,7 @@ pub struct CalculationGraph {
 impl CalculationGraph {
     ///
     /// Конструирует Диспетчер расчетов и проверяет граф на отсутствие циклов.
-    pub fn new(parent: impl Into<String>, calculuses: impl Iterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
+    pub fn new(parent: impl Into<String>, calculuses: impl IntoIterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "CalculationGraph");
         let mut nodes = HashMap::new();
         let mut inputs_map: HashMap<IecId, Vec<CalcId>> = HashMap::new();

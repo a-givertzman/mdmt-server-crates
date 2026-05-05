@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bincode::Encode;
 use sal_core::error::Error;
 use sal_sync::sync::channel::Sender;
 
@@ -78,7 +79,16 @@ impl Snapshot {
 
 /// ### Fake ! To be removed...
 /// Replace it with the real `Event`
+#[derive(Debug, Encode)]
 pub struct Event {}
+impl Event {
+    pub fn reply_ok(&self, ) -> Self {
+        Event {}
+    }
+    pub fn reply_err(&self, err: impl Into<String>) -> Self {
+        Event {}
+    }
+}
 impl From<&Vec<(&'static str, String)>> for Event {
     fn from(value: &Vec<(&'static str, String)>) -> Self {
         Self {  }
