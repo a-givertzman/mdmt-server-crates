@@ -69,9 +69,9 @@ impl Eval<(Event, Link), Result<(), Error>> for Calculations {
             } else {
                 // Расчет завершился успешно
                 _ = self.proj_tree_link.send((calc_id, ProjectNodeStatus::Ready));
-                _ = link.send(event.reply_ok());     // Event CmdCon, Calculation success
             }
         }
+        _ = link.send(event.reply_ok());     // Event CmdCon, Calculation success
         Ok(())
     }
 }
