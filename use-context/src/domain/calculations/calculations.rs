@@ -1,5 +1,6 @@
 use std::collections::{HashSet, VecDeque};
 use sal_core::{dbg::Dbg, error::Error};
+use sal_sync::thread_pool::Scheduler;
 use crate::{domain::{CalcId, CalculationGraph, Calculus, Event, ProjectNodeStatus, calculations::IecId}, kernel::{Eval, sync::Link, types::channel::Sender}};
 ///
 /// ### Диспетчер расчетов.
@@ -10,18 +11,21 @@ pub struct Calculations {
     calculation_graph: CalculationGraph,
     /// Ссылка на канал обновления статусов расчетов дерева проекта (`ProjectTree`)
     proj_tree_link: Sender<(CalcId, ProjectNodeStatus)>,
+    /// Для запуска вычислений в независимых потоках, заведем, используем позже
+    scheduler: Scheduler,
     dbg: Dbg,
 }
 impl Calculations {
     ///
     /// Конструирует Диспетчер расчетов и проверяет граф на отсутствие циклов.
-    pub fn new(parent: impl Into<String>, tree_link: Sender<(CalcId, ProjectNodeStatus)>, calculuses: impl IntoIterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
+    pub fn new(parent: impl Into<String>, tree_link: Sender<(CalcId, ProjectNodeStatus)>, scheduler: Scheduler, calculuses: impl IntoIterator<Item = Box<dyn Calculus>>) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "calculations");
         let calculation_graph = CalculationGraph::new(&dbg, calculuses)
             .map_err(|err| Error::new(&dbg, "new").pass(err))?;
         Ok(Self {
             calculation_graph,
             proj_tree_link: tree_link,
+            scheduler,
             dbg,
         })
     }
