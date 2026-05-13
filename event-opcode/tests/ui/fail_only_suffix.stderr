@@ -1,0 +1,5 @@
+error: Имя структуры `Req` состоит только из суффикса. Добавьте осмысленное базовое имя (например, ProjectReq).
+ --> tests/ui/fail_only_suffix.rs:3:12
+  |
+3 | pub struct Req;
+  |            ^^^

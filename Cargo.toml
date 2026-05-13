@@ -1,9 +1,10 @@
 
 [workspace]
 members = [
-    "cgraph-macros",
-    "context-macros",
-    "use-context",
+    "cgraph-macros",    # Библиотека, Макрос #[eval_depend]
+    "context-macros",   # Библиотека, Макрос #[derive(ContextAccess)]
+    "event-opcode",     # Библиотека, Макрос #[derive(EventOpCode)]
+    "use-context",  # Тестовое приложение
 ]
 
 resolver = "3"
@@ -11,4 +12,4 @@ resolver = "3"
 [workspace.package]
 edition = "2024"
 version = "0.1.0"
-authors = ["Your Name"]
+authors = ["sa-lab"]

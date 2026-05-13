@@ -1,0 +1,7 @@
+error: Архитектурное ограничение: структура `TestEventWrong` имеет недопустимое окончание.
+       Разрешенные суффиксы: Req, Reply, Cmd, Inf, Err, Con.
+       Пример правильного именования: `NewProjectReq` или `UpdateNodeCmd`.
+ --> tests/ui/fail_bad_suffix.rs:3:12
+  |
+3 | pub struct TestEventWrong;
+  |            ^^^^^^^^^^^^^^
