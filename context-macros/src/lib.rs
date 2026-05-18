@@ -2,6 +2,8 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
+use syn::{Data, Fields, Type};
+
 ///
 /// ### Создает методы безопасного доступа к полям ContextTransacrion
 /// 
@@ -183,4 +185,117 @@ pub fn derive_context_properties(input: TokenStream) -> TokenStream {
         }
     };
     TokenStream::from(expanded)
+}
+
+///
+/// ### Макрос для инициализации  `RawContext` из коллекции пар `Key-Value`
+/// 
+/// * Добавьте `ContextLoad` в derive `RawContext`
+/// * Инициализируйте `RawContext` из пар `Key-Value` загруженных `Snapshot`
+/// ```ignore
+/// RawContext.from_snapshot(
+///     Snapshot.fetch(...)
+/// )
+/// ```
+#[proc_macro_derive(ContextLoad, attributes(context))]
+pub fn derive_context_load(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    let struct_name = &ast.ident;
+    let Data::Struct(data_struct) = &ast.data else {
+        panic!("ContextLoad можно применять только к структурам");
+    };
+    let Fields::Named(fields) = &data_struct.fields else {
+        panic!("ContextLoad требует именованных полей");
+    };
+    let mut field_initializers = Vec::new();
+    for field in &fields.named {
+        let field_name = field.ident.as_ref().unwrap();
+        let field_type = &field.ty;
+        // Здесь мы должны вытащить значение iec_id из атрибута #[context(iec_id = "...")]
+        // Для примера предполагаем, что мы его распарсили в строковую переменную iec_key_str
+        let iec_key_str = extract_iec_id(&field.attrs).expect("Отсутствует атрибут iec_id");
+        let is_option = is_option_type(field_type);
+        let init_block = if is_option {
+            quote! {
+                match properties_map.remove(#iec_key_str) {
+                    Some(json_val) => match serde_json::from_value(json_val) {
+                        Ok(val) => {
+                            report.loaded.push(#iec_key_str.to_string());
+                            Some(val)
+                        },
+                        Err(e) => {
+                            report.errors.push((#iec_key_str.to_string(), e.to_string()));
+                            None
+                        }
+                    },
+                    None => {
+                        report.missing_in_db.push(#iec_key_str.to_string());
+                        None
+                    }
+                }
+            }
+        } else {
+            quote! {
+                match properties_map.remove(#iec_key_str) {
+                    Some(json_val) => match serde_json::from_value(json_val) {
+                        Ok(val) => {
+                            report.loaded.push(#iec_key_str.to_string());
+                            val
+                        },
+                        Err(e) => {
+                            report.errors.push((#iec_key_str.to_string(), e.to_string()));
+                            <#field_type>::default()
+                        }
+                    },
+                    None => {
+                        report.missing_in_db.push(#iec_key_str.to_string());
+                        <#field_type>::default()
+                    }
+                }
+            }
+        };
+        field_initializers.push(quote! {
+            #field_name: #init_block
+        });
+    }
+    let expanded = quote! {
+        impl #struct_name {
+            /// Инициализирует структуру из коллекции `(Kye, JSON)`.
+            /// 
+            /// Аргументы:
+            /// * `properties` - Любой итератор, отдающий пары IecKey и JSON.
+            pub fn from_snapshot(
+                properties: impl std::iter::IntoIterator<Item = (String, serde_json::Value)>
+            ) -> (Self, LoadReport) {
+                let mut properties_map: std::collections::HashMap<_, _> = properties.into_iter().collect();
+                let mut report = LoadReport {
+                    loaded: Vec::new(),
+                    missing_in_db: Vec::new(),
+                    unused_in_db: Vec::new(),
+                    errors: Vec::new(),
+                };
+                let instance = Self {
+                    #(#field_initializers),*
+                };
+                report.unused_in_db = properties_map.into_keys().collect();
+                (instance, report)
+            }
+        }
+    };
+    TokenStream::from(expanded)
+}
+/// Проверяет, является ли тип `Option<T>`
+fn is_option_type(ty: &Type) -> bool {
+    if let Type::Path(type_path) = ty {
+        if let Some(segment) = type_path.path.segments.last() {
+            return segment.ident == "Option" || segment.ident == "std::option::Option";
+        }
+    }
+    false
+}
+/// Извлекает iec_id из атрибутов (заглушка для наглядности)
+fn extract_iec_id(attrs: &[syn::Attribute]) -> Option<String> {
+    // Здесь должна быть логика поиска #[context(iec_id = "Ship.General...")]
+    // ...
+    Some("dummy_key".to_string()) 
 }
