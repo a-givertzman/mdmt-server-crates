@@ -5,7 +5,7 @@ version.workspace = true
 publish = false
 
 [dependencies]
-log = "~0.4"
+log = "^0.4"
 
 #
 # Internal
@@ -29,19 +29,19 @@ bincode = { version = "~2.0", features = ["std"] }
 #
 # Math
 # splines = "~5.0"
-nalgebra = "~0.34"
+nalgebra = "^0.34"
 
 #
 # Helpful macros for working with enums and strings
-strum = "~0.28"
-strum_macros = "~0.28"
+strum = "^0.28"
+strum_macros = "^0.28"
 
 #
 # Thread safe
-kanal = "~0.1"
-papaya = "~0.2"
-parking_lot = "~0.12"
-arc-swap = "~1.8"
+kanal = "^0.1"
+papaya = "^0.2"
+parking_lot = "^0.12"
+arc-swap = "^1.8"
 
 #
 # Diagnistic

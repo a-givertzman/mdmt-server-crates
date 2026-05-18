@@ -190,7 +190,6 @@ pub fn derive_context_properties(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-
 ///
 ///  ### Макрос для обогащения `RawContext` из коллекции пар `Key-Value`
 /// 
@@ -219,7 +218,6 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
         let ty = &field.ty;
         let skip = field.attrs.iter().any(|a| {
             if a.path().is_ident("context") {
-                // Парсим аргументы как список идентификаторов, разделенных запятыми
                 if let Ok(nested) = a.parse_args_with(syn::punctuated::Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated) {
                     return nested.iter().any(|i| i == "skip_load");
                 }
@@ -231,7 +229,7 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
         }
         let (is_option, target_ty) = extract_option_inner(ty).map_or((false, ty), |inner| (true, inner));
         let assign_success = if is_option {
-            quote! { self.#field_name = Some(parsed); }
+            quote! { self.#field_name = ::core::option::Option::Some(parsed); }
         } else {
             quote! { self.#field_name = parsed; }
         };
@@ -239,7 +237,7 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
             {
                 let key = <#target_ty as IecId>::iec_id();
                 if let Some(val) = props_map.remove(key) {
-                    match serde_json::from_value(val) {
+                    match ::serde_json::from_value(val) {
                         Ok(parsed) => {
                             report.loaded.push(key.to_string());
                             #assign_success
@@ -258,23 +256,33 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
         /// Отчет о результатах загрузки состояния из БД.
         #[derive(Debug)]
         pub struct #report_name {
-            pub loaded: Vec<String>,
-            pub missing_in_db: Vec<String>,
-            pub unused_in_db: Vec<String>,
-            pub errors: Vec<(String, String)>,
+            /// Ключи, которые были успешно найдены и применены.
+            pub loaded: ::std::vec::Vec<::std::string::String>,
+            /// Ключи, отсутствующие в БД (значения полей остались без изменений).
+            pub missing_in_db: ::std::vec::Vec<::std::string::String>,
+            /// Ключи из БД, не востребованные ни одним полем контекста.
+            pub unused_in_db: ::std::vec::Vec<::std::string::String>,
+            /// Ошибки десериализации (ключ, текст ошибки).
+            pub errors: ::std::vec::Vec<(::std::string::String, ::std::string::String)>,
+        }
+        impl #report_name {
+            /// Проверяет, завершилась ли загрузка без критических ошибок десериализации.
+            pub fn is_clean(&self) -> bool {
+                self.errors.is_empty()
+            }
         }
         impl #struct_name {
             /// Обогащает структуру на основе сырых данных, сохраняя текущие значения для отсутствующих ключей.
             pub fn with_snapshot(
                 mut self,
-                properties: impl std::iter::IntoIterator<Item = (String, serde_json::Value)>
+                properties: impl ::std::iter::IntoIterator<Item = (::std::string::String, ::serde_json::Value)>
             ) -> (Self, #report_name) {
-                let mut props_map: std::collections::HashMap<String, serde_json::Value> = properties.into_iter().collect();
+                let mut props_map: ::std::collections::HashMap<::std::string::String, ::serde_json::Value> = properties.into_iter().collect();
                 let mut report = #report_name {
-                    loaded: Vec::new(),
-                    missing_in_db: Vec::new(),
-                    unused_in_db: Vec::new(),
-                    errors: Vec::new(),
+                    loaded: ::std::vec::Vec::new(),
+                    missing_in_db: ::std::vec::Vec::new(),
+                    unused_in_db: ::std::vec::Vec::new(),
+                    errors: ::std::vec::Vec::new(),
                 };
                 #(#field_mutations)*
                 report.unused_in_db = props_map.into_keys().collect();
@@ -288,7 +296,7 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
 fn extract_option_inner(ty: &Type) -> Option<&Type> {
     if let Type::Path(ty_path) = ty {
         if let Some(segment) = ty_path.path.segments.last() {
-            if segment.ident == "Option" || segment.ident == "std::option::Option" {
+            if segment.ident == "Option" || segment.ident == "std::option::Option" || segment.ident == "core::option::Option" {
                 if let PathArguments::AngleBracketed(args) = &segment.arguments {
                     if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
                         return Some(inner_ty);

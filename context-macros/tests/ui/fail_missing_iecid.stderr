@@ -1,0 +1,48 @@
+error[E0277]: the trait bound `BadType: IecId` is not satisfied
+  --> tests/ui/fail_missing_iecid.rs:12:20
+   |
+12 |     pub bad_field: BadType,
+   |                    ^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `IecId` is not implemented for `BadType`
+  --> tests/ui/fail_missing_iecid.rs:7:1
+   |
+ 7 | struct BadType; // Забыли реализовать IecId и Deserialize
+   | ^^^^^^^^^^^^^^
+help: this trait has no implementations, consider adding one
+  --> tests/ui/fail_missing_iecid.rs:3:1
+   |
+ 3 | pub trait IecId {
+   | ^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `BadType: serde::de::DeserializeOwned` is not satisfied
+ --> tests/ui/fail_missing_iecid.rs:9:10
+  |
+9 | #[derive(ContextLoad)]
+  |          ^^^^^^^^^^^ unsatisfied trait bound
+  |
+help: the trait `for<'de> serde_core::de::Deserialize<'de>` is not implemented for `BadType`
+ --> tests/ui/fail_missing_iecid.rs:7:1
+  |
+7 | struct BadType; // Забыли реализовать IecId и Deserialize
+  | ^^^^^^^^^^^^^^
+  = help: the following other types implement trait `serde_core::de::Deserialize<'de>`:
+            &'a Path
+            &'a [u8]
+            &'a str
+            ()
+            (T,)
+            (T0, T1)
+            (T0, T1, T2)
+            (T0, T1, T2, T3)
+          and $N others
+  = note: required for `BadType` to implement `serde_core::de::DeserializeOwned`
+note: required by a bound in `from_value`
+ --> $CARGO/serde_json-$VERSION/src/value/mod.rs
+  |
+  | pub fn from_value<T>(value: Value) -> Result<T, Error>
+  |        ---------- required by a bound in this function
+  | where
+  |     T: DeserializeOwned,
+  |        ^^^^^^^^^^^^^^^^ required by this bound in `from_value`
+  = note: this error originates in the derive macro `ContextLoad` (in Nightly builds, run with -Z macro-backtrace for more info)
