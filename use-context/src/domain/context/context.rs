@@ -27,6 +27,19 @@ impl Context {
             }))),
         }
     }
+    ///
+    /// Обогащает контекст данными из БД.
+    /// Выполняется единожды на этапе старта приложения.
+    pub fn with_snapshot(self, properties: impl IntoIterator<Item = (String, serde_json::Value)>) -> Self {
+        let raw_clone = {
+            let raw_guard = self.raw.read();
+            (**raw_guard).clone()
+        };
+        let (raw, report) = raw_clone.with_snapshot(properties);
+        log::debug!("Context.with_snapshot | load report: {:#?}", report);
+        *self.raw.write() = Arc::new(raw);
+        self
+    }
     /// Returns [ContextTransaction] to start a transaction
     /// - [ContextTransaction] - accumulates multiple results to be applied to the [Context] later by calling [ContextTransaction]`.commit` or `.rollback`
     pub fn transaction(&self, link: Sender<Event>, api_client: Arc<ApiClient>) -> ContextTransaction {

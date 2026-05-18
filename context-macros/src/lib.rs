@@ -190,16 +190,17 @@ pub fn derive_context_properties(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+
 ///
-/// ### Макрос для инициализации  `RawContext` из коллекции пар `Key-Value`
+///  ### Макрос для обогащения `RawContext` из коллекции пар `Key-Value`
 /// 
-/// * Добавьте `ContextLoad` в derive `RawContext`
-/// * Инициализируйте `RawContext` из пар `Key-Value` загруженных `Snapshot`
-/// * #[context(skip_load)] - для пропуска поля, не будет загружаться из `Snapshot`
+/// * Добавьте `ContextLoad` в derive `RawContext`.
+/// * Обогащайте `RawContext` парами `Key-Value`, загруженными через `Snapshot`.
+/// * `#[context(skip_load)]` - пропускает поле, оно не будет изменено и не требует реализации `IecId`.
+/// 
 /// ```ignore
-/// RawContext.from_snapshot(
-///     Snapshot.fetch(...)
-/// )
+/// let ctx = RawContext::default().with_version("1.0.0");
+/// let (ctx, report) = ctx.with_snapshot(Snapshot::fetch(...));
 /// ```
 #[proc_macro_derive(ContextLoad, attributes(context))]
 pub fn derive_context_load(input: TokenStream) -> TokenStream {
@@ -212,47 +213,53 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
     let Fields::Named(fields) = &data_struct.fields else {
         panic!("ContextLoad requires named fields");
     };
-    let mut field_inits = Vec::new();
+    let mut field_mutations = Vec::new();
     for field in &fields.named {
         let field_name = &field.ident;
         let ty = &field.ty;
-        // Проверяем, есть ли атрибут #[context(skip)]
-        let skip = field.attrs.iter().any(|a| a.path().is_ident("context") && a.parse_args::<syn::Ident>().map_or(false, |i| i == "skip_load"));
+        let skip = field.attrs.iter().any(|a| {
+            if a.path().is_ident("context") {
+                // Парсим аргументы как список идентификаторов, разделенных запятыми
+                if let Ok(nested) = a.parse_args_with(syn::punctuated::Punctuated::<syn::Ident, syn::Token![,]>::parse_terminated) {
+                    return nested.iter().any(|i| i == "skip_load");
+                }
+            }
+            false
+        });
+        // let skip = field.attrs.iter().any(|a| {
+        //     a.path().is_ident("context") && a.parse_args::<syn::Ident>().map_or(false, |i| i == "skip_load")
+        // });
         if skip {
-            field_inits.push(quote! {
-                #field_name: Default::default()
-            });
             continue;
         }
         let (is_option, target_ty) = extract_option_inner(ty).map_or((false, ty), |inner| (true, inner));
-        let success_val = if is_option { quote!(Some(parsed)) } else { quote!(parsed) };
-        let fallback_val = if is_option { quote!(None) } else { quote!(Default::default()) };
-        field_inits.push(quote! {
-            #field_name: {
+        let assign_success = if is_option {
+            quote! { self.#field_name = Some(parsed); }
+        } else {
+            quote! { self.#field_name = parsed; }
+        };
+        field_mutations.push(quote! {
+            {
                 let key = <#target_ty as IecId>::iec_id();
-                match props_map.remove(key) {
-                    Some(val) => {
-                        match serde_json::from_value(val) {
-                            Ok(parsed) => {
-                                report.loaded.push(key.to_string());
-                                #success_val
-                            },
-                            Err(e) => {
-                                report.errors.push((key.to_string(), e.to_string()));
-                                #fallback_val
-                            }
+                if let Some(val) = props_map.remove(key) {
+                    match serde_json::from_value(val) {
+                        Ok(parsed) => {
+                            report.loaded.push(key.to_string());
+                            #assign_success
+                        },
+                        Err(e) => {
+                            report.errors.push((key.to_string(), e.to_string()));
                         }
-                    },
-                    None => {
-                        report.missing_in_db.push(key.to_string());
-                        #fallback_val
                     }
+                } else {
+                    report.missing_in_db.push(key.to_string());
                 }
             }
         });
     }
     let expanded = quote! {
         /// Отчет о результатах загрузки состояния из БД.
+        #[derive(Debug)]
         pub struct #report_name {
             pub loaded: Vec<String>,
             pub missing_in_db: Vec<String>,
@@ -260,8 +267,9 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
             pub errors: Vec<(String, String)>,
         }
         impl #struct_name {
-            /// Инициализирует структуру на основе сырых данных.
-            pub fn from_snapshot(
+            /// Обогащает структуру на основе сырых данных, сохраняя текущие значения для отсутствующих ключей.
+            pub fn with_snapshot(
+                mut self,
                 properties: impl std::iter::IntoIterator<Item = (String, serde_json::Value)>
             ) -> (Self, #report_name) {
                 let mut props_map: std::collections::HashMap<String, serde_json::Value> = properties.into_iter().collect();
@@ -271,11 +279,9 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
                     unused_in_db: Vec::new(),
                     errors: Vec::new(),
                 };
-                let instance = Self {
-                    #(#field_inits),*
-                };
+                #(#field_mutations)*
                 report.unused_in_db = props_map.into_keys().collect();
-                (instance, report)
+                (self, report)
             }
         }
     };
