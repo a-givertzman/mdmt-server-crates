@@ -225,7 +225,7 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
         let fallback_val = if is_option { quote!(None) } else { quote!(Default::default()) };
         field_inits.push(quote! {
             #field_name: {
-                let key = <#target_ty as IecKey>::iec_id();
+                let key = <#target_ty as IecId>::iec_id();
                 match props_map.remove(key) {
                     Some(val) => {
                         match serde_json::from_value(val) {
