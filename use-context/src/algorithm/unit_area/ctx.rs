@@ -1,11 +1,11 @@
 use context_macros::ContextProperties;
 use get_size::GetSize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::algorithm::Moment;
 
 /// Площади поверхности грузов
-#[derive(Debug, Clone, Serialize, ContextProperties, GetSize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ContextProperties, GetSize)]
 #[iec_id = "Ship.Stability.WindArea.UnitArea"]
 pub struct UnitAreaCtx {
     /// Площадь парусности палубного груза, м^2

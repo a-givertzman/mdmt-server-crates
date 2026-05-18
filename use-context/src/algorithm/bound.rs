@@ -4,10 +4,10 @@
 use bincode::{Decode, Encode};
 use get_size::GetSize;
 use sal_core::error::Error;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 ///
 /// Диапазон значений между двумя заданными
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Decode, Encode, GetSize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Decode, Encode, GetSize)]
 pub enum Bound {
     None,
     Full,

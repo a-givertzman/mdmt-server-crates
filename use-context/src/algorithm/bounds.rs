@@ -3,11 +3,11 @@
 use bincode::{Decode, Encode};
 use get_size::GetSize;
 use sal_core::error::Error;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::Bound;
 /// Непрерывный набор диапазонов значений
-#[derive(Debug, Clone, PartialEq, Serialize, Decode, Encode, GetSize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Decode, Encode, GetSize)]
 pub struct Bounds {
     // Непрерывный вектор диапазонов
     values: Vec<Bound>,

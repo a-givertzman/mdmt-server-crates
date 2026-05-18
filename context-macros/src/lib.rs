@@ -12,11 +12,14 @@ use syn::{Data, Fields, Type};
 ///     - **`read`**  =>  impl `ContextRead<T> for ContextTransacrion`
 ///     - **`read_ref`**  =>  impl `ContextReadRef<T> for ContextTransacrion`
 ///     - **`write`** =>  impl  `ContextWrite<T> for ContextTransacrion`
+///     - **`skip`** => context access traits will not be implemented for that field
 ///
 /// **Пример:**
 /// ```ignore
 /// #[derive(ContextAccess)]
 /// pub struct RawContext {
+///     #[context(skip)]
+///     pub version: usize,
 ///     #[context(read, read_ref, write)]
 ///     pub(super) property: Option<ProperyCtx>,
 /// }
@@ -192,6 +195,7 @@ pub fn derive_context_properties(input: TokenStream) -> TokenStream {
 /// 
 /// * Добавьте `ContextLoad` в derive `RawContext`
 /// * Инициализируйте `RawContext` из пар `Key-Value` загруженных `Snapshot`
+/// * #[context(skip_load)] - для пропуска поля, не будет загружаться из `Snapshot`
 /// ```ignore
 /// RawContext.from_snapshot(
 ///     Snapshot.fetch(...)
@@ -213,7 +217,7 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
         let field_name = &field.ident;
         let ty = &field.ty;
         // Проверяем, есть ли атрибут #[context(skip)]
-        let skip = field.attrs.iter().any(|a| a.path().is_ident("context") && a.parse_args::<syn::Ident>().map_or(false, |i| i == "skip"));
+        let skip = field.attrs.iter().any(|a| a.path().is_ident("context") && a.parse_args::<syn::Ident>().map_or(false, |i| i == "skip_load"));
         if skip {
             field_inits.push(quote! {
                 #field_name: Default::default()
