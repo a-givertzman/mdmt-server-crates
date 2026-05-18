@@ -226,9 +226,6 @@ pub fn derive_context_load(input: TokenStream) -> TokenStream {
             }
             false
         });
-        // let skip = field.attrs.iter().any(|a| {
-        //     a.path().is_ident("context") && a.parse_args::<syn::Ident>().map_or(false, |i| i == "skip_load")
-        // });
         if skip {
             continue;
         }
