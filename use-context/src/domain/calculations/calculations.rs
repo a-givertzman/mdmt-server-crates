@@ -41,7 +41,7 @@ impl Eval<(Event, Link), Result<(), Error>> for Calculations {
     fn eval(&self, args: (Event, Link)) -> Result<(), Error> {
         let (event, link) = args;
         let changes: Vec<(IecId, serde_json::Value)> = vec![]; // Читаем из полученного Event
-        let calculations = self.calculation_graph.plan(changes.iter().map(|(iec_id, _)| *iec_id));
+        let calculations = self.calculation_graph.plan(changes.iter().map(|(iec_id, _)| iec_id.clone()));
         let mut skipped_nodes = HashSet::new();
         for calc in calculations {
             let calc_id = calc.id();

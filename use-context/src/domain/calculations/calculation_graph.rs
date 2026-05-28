@@ -7,8 +7,8 @@ use crate::{domain::EvalTags, kernel::Eval};
 pub struct CalcId(pub &'static str);
 ///
 /// Идентификатор параметра IEC, используемый в контексте.
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub(super) struct IecId(pub &'static str);
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub(super) struct IecId(pub String);
 ///
 /// Интерфейс вычислительного узла.
 pub trait Calculus: Eval<(), Result<(), Error>> + EvalTags + Send + Sync {
@@ -45,10 +45,10 @@ impl CalculationGraph {
             let id = calc.id();
             let tags = calc.tags();
             for input in tags.inputs {
-                inputs_map.entry(IecId(input)).or_default().push(id);
+                inputs_map.entry(IecId(input.to_owned())).or_default().push(id);
             }
             for output in tags.outputs {
-                outputs_map.entry(id).or_default().push(IecId(output));
+                outputs_map.entry(id).or_default().push(IecId(output.to_owned()));
             }
             nodes.insert(id, calc);
         }
@@ -82,7 +82,7 @@ impl CalculationGraph {
                     if affected_calcs.insert(calc_id) {
                         if let Some(produced_keys) = self.outputs_map.get(calc_id) {
                             for out_key in produced_keys {
-                                queue.push_back(*out_key);
+                                queue.push_back(out_key.clone());
                             }
                         }
                     }
@@ -212,7 +212,7 @@ mod tests {
         let graph = CalculationGraph::new("test", vec![calc_a, calc_b, calc_c, calc_d]).expect("Graph should build");
         // Эмулируем изменение параметра, который генерируется узлом A
         // Ожидаем, что пересчитаются только B и C. Узел D затронут быть не должен.
-        let changes = vec![IecId("val_a")];
+        let changes = vec![IecId("val_a".to_owned())];
         let plan = graph.plan(changes.into_iter());
         assert_eq!(plan.len(), 2);
         assert_eq!(plan[0].id(), CalcId("B"));

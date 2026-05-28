@@ -12,5 +12,5 @@ pub use snapshot::*;
 /// Trait for converting [Context] members into key-value properties
 /// - Context -> `DB.properties` adapter
 pub trait Properties {
-    fn properties(&self) -> Vec<(&'static str, String)>;
+    fn properties(&self) -> Vec<(String, String)>;
 }

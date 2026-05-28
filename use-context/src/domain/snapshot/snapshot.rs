@@ -14,7 +14,7 @@ use crate::domain::Properties;
 pub struct Snapshot {
     link: Sender<Event>,
     api_client: Arc<ApiClient>,
-    items: Vec<(&'static str, String)>,
+    items: Vec<(String, String)>,
 }
 impl Snapshot {
     ///
@@ -89,8 +89,8 @@ impl Event {
         Event {}
     }
 }
-impl From<&Vec<(&'static str, String)>> for Event {
-    fn from(value: &Vec<(&'static str, String)>) -> Self {
+impl From<&Vec<(String, String)>> for Event {
+    fn from(value: &Vec<(String, String)>) -> Self {
         Self {  }
     }
 }
@@ -110,7 +110,7 @@ impl Upsert {
     pub fn new() -> Self {
         Self {}
     }
-    pub fn insert(&self, item: (&str, String)) {
+    pub fn insert(&self, item: (String, String)) {
         
     }
     pub fn build(&self) -> Sql {
