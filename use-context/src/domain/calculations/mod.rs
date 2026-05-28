@@ -16,10 +16,10 @@ pub use calculation_graph::*;
 #[derive(Debug)]
 pub struct CalculationTags {
     /// IecId's, which calculation reads from context.
-    pub inputs: Vec<&'static str>,
+    pub inputs: Vec<String>,
     /// IecId's, which calculation returns, writes into context.
     /// members stored into the context
-    pub outputs: Vec<&'static str>,
+    pub outputs: Vec<String>,
 }
 ///
 /// ### Calculation-Graph | Calculation Dependencies

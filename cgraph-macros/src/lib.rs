@@ -234,11 +234,11 @@ pub fn eval_depend(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Превращаем имена типов в токены путей для вызова IecId::iec_id()
     let read_tags = visitor.reads.iter().map(|s| {
         let ty: Type = syn::parse_str(s).unwrap();
-        quote! { <#ty as crate::domain::IecId>::iec_id() }
+        quote! { <#ty as crate::domain::IecId>::iec_id().into() }
     });
     let write_tags = visitor.writes.iter().map(|s| {
         let ty: Type = syn::parse_str(s).unwrap();
-        quote! { <#ty as crate::domain::IecId>::iec_id() }
+        quote! { <#ty as crate::domain::IecId>::iec_id().into() }
     });
     let expanded = quote! {
         #ast

@@ -152,12 +152,12 @@ mod tests {
     /// Мок-объект для эмуляции расчетов
     struct MockCalculus {
         id: CalcId,
-        inputs: Vec<&'static str>,
-        outputs: Vec<&'static str>,
+        inputs: Vec<String>,
+        outputs: Vec<String>,
     }
     impl MockCalculus {
         fn new(id: &'static str, inputs: Vec<&'static str>, outputs: Vec<&'static str>) -> Self {
-            Self { id: CalcId(id), inputs, outputs }
+            Self { id: CalcId(id), inputs: inputs.iter().map(|v| v.to_string()).collect(), outputs: outputs.iter().map(|v| v.to_string()).collect() }
         }
     }
     impl Calculus for MockCalculus {
