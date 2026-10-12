@@ -30,7 +30,7 @@ impl UnitAreaEval {
     fn fake_pass(ctx: ContextTransaction) -> ContextTransaction {
         // let initial = ContextReadRef::<InitialCtx>::read_ref(&ctx);
         // let initial = ContextRead::<InitialCtx>::read(&ctx);
-        let initial: InitialCtx = ctx.read();
+        let initial: InitialCtx = ctx.read().unwrap();
         // let initial = ctx.read_ref();
         // let initial: &InitialCtx = initial;
         ctx
@@ -47,7 +47,7 @@ impl Eval<(), EvalResult> for UnitAreaEval {
                 // let initial = ContextReadRef::<InitialCtx>::read_ref(&ctx);
                 // let initial = ContextRead::<InitialCtx>::read(&ctx);
                 // let initial: InitialCtx = ctx.read();
-                let initial: &InitialCtx = ctx.read_ref();
+                let initial: &InitialCtx = ctx.read_ref().unwrap();
                 // let initial = ctx.read_ref();
                 // let initial: &InitialCtx = initial;
                 // Self::fake_pass_ref(&ctx);
