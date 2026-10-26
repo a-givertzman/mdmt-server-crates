@@ -2,7 +2,7 @@ use get_size::GetSize;
 use context_macros::{ContextAccess, ContextLoad};
 use std::fmt::Debug;
 
-use crate::{algorithm::{ApparentFrequenciesCtx, Parameters, UnitAreaCtx}, domain::{InitialCtx, IecId}};
+use crate::{algorithm::{ApparentFrequenciesCtx, Parameters, UnitAreaCtx}, domain::{InitialCtx}};
 
 /// Сырой контекст для вычислений
 /// Без изменений берем из SSS
