@@ -1,9 +1,10 @@
 
 [workspace]
 members = [
-    "cgraph-macros",    # Библиотека, Макрос #[eval_depend]
-    "context-macros",   # Библиотека, Макрос #[derive(ContextAccess)]
-    "event-opcode",     # Библиотека, Макрос #[derive(EventOpCode)]
+    "cgraph-macros",        # Библиотека, Макрос #[eval_depend]
+    "context-macros",       # Библиотека, Макрос #[derive(ContextAccess)]
+    "event-opcode",         # Библиотека, Макрос #[derive(EventOpCode)]
+    "context-ui-macros",    # Библиотека, Макрос #[derive(UiContextAccess, UiContextProperies)]
     "use-context",  # Тестовое приложение
 ]
 
