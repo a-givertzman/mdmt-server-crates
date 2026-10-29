@@ -69,7 +69,7 @@ fn main() -> Result<(), Error> {
         let ctx = ctx.transaction(send.clone(), client.clone());
         log::debug!("Thread 1 | Start Transaction elapsed: {:?}", t.elapsed());
         move || {
-            let initial: InitialCtx = ctx.read();
+            let initial: InitialCtx = ctx.read().unwrap();
             let result = ApparentFrequenciesCtx {
                 apparent_frequencies: vec![
                     (1.39, 40.55, 25.39),
@@ -96,7 +96,7 @@ fn main() -> Result<(), Error> {
         let ctx = ctx.transaction(send, client);
         log::debug!("Thread 2 | Start Transaction elapsed: {:?}", t.elapsed());
         move || {
-            let initial: InitialCtx = ctx.read();
+            let initial: InitialCtx = ctx.read().unwrap();
             let result = UnitAreaCtx {
                 av_dc: 34.12,
                 mv_dc: Position::new(42.9, 42.8, 42.7),

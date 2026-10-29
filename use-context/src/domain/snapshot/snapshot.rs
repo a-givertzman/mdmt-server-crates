@@ -38,7 +38,7 @@ impl Snapshot {
     ///
     /// Adds a [Context] member to the transaction
     pub fn add(&mut self, items: impl Properties) {
-        for item in items.properties() {
+        for item in items.properties().unwrap() {
             self.items.push(item);
         }
     }
