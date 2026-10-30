@@ -44,7 +44,10 @@ pub(crate) fn context_flags(field: &Field) -> syn::Result<ContextFlags> {
             } else if meta.path.is_ident("skip_load") {
                 &mut flags.skip_load
             } else {
-                return Err(meta.error("unknown context flag; expected read, read_ref, write, skip, or skip_load"));
+                // Флаг другого derive-макроса: молча пропускаем,
+                // вычитывая возможные аргументы, чтобы parse_nested_meta не упал.
+                let _ = meta.input.parse::<proc_macro2::TokenStream>();
+                return Ok(());
             };
             if *slot { return Err(meta.error("duplicate context flag")); }
             if !meta.input.is_empty() && !meta.input.peek(syn::Token![,]) {

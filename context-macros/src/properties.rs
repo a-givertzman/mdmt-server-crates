@@ -38,15 +38,18 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         }
         impl #impl_generics crate::domain::Properties for #name #type_generics #where_clause {
             fn properties(&self) -> ::core::result::Result<
-                ::std::vec::Vec<(::std::string::String, ::std::string::String)>, ::serde_json::Error
+                ::std::vec::Vec<(::std::string::String, crate::kernel::JsonVal)>, ::sal_core::error::Error
             > {
-                let json = ::serde_json::to_string(self)?;
-                ::core::result::Result::Ok(::std::vec![(::std::string::String::from(#key), json)])
+                let value = ::serde_json::to_value(self).map_err(|err| {
+                    ::sal_core::error::Error::new("ContextProperties", ::core::stringify!(#name))
+                        .pass_with("serialize", err.to_string())
+                })?;
+                ::core::result::Result::Ok(::std::vec![(::std::string::String::from(#key), value)])
             }
         }
         impl #impl_generics crate::domain::Properties for &#name #type_generics #where_clause {
             fn properties(&self) -> ::core::result::Result<
-                ::std::vec::Vec<(::std::string::String, ::std::string::String)>, ::serde_json::Error
+                ::std::vec::Vec<(::std::string::String, crate::kernel::JsonVal)>, ::sal_core::error::Error
             > {
                 <#name #type_generics as crate::domain::Properties>::properties(*self)
             }

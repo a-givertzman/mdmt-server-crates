@@ -29,7 +29,7 @@ pub trait IecId {
 }
 
 pub trait Properties {
-    fn properties(&self) -> Result<Vec<(String, String)>, serde_json::Error>;
+    fn properties(&self) -> Result<Vec<(String, crate::kernel::JsonVal)>, sal_core::error::Error>;
 }
 
 

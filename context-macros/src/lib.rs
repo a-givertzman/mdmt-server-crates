@@ -21,7 +21,7 @@ pub fn derive_context_access(input: TokenStream) -> TokenStream {
 
 /// Generate IecId and Properties in crate::domain.
 /// Requires one non-empty #[iec_id = "..."] on the type.
-/// Properties returns Result<Vec<(String, String)>, serde_json::Error>.
+/// Properties returns Result<Vec<(String, serde_json::Valie)>, sal_core::error::Error>.
 #[proc_macro_derive(ContextProperties, attributes(iec_id))]
 pub fn derive_context_properties(input: TokenStream) -> TokenStream {
     finish(properties::expand(parse_macro_input!(input as DeriveInput)))

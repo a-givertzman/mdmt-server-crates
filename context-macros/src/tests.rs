@@ -9,7 +9,6 @@ fn access_error(input: DeriveInput) -> String {
 #[test]
 fn invalid_flags_are_reported_instead_of_silently_ignored() {
     for attribute in [
-        quote!(#[context(unknown)]),
         quote!(#[context(read = true)]),
         quote!(#[context(read_ref(extra))]),
         quote!(#[context(read, read)]),
@@ -26,13 +25,17 @@ fn invalid_flags_are_reported_instead_of_silently_ignored() {
 }
 
 #[test]
-fn skipped_fields_still_validate_their_attributes() {
-    assert!(access::expand(parse_quote! {
-        struct RawContext { #[context(skip, typo)] value: Value }
-    }).is_err());
-    assert!(load::expand(parse_quote! {
-        struct RawContext { #[context(skip_load, typo)] value: Value }
-    }).is_err());
+fn unknown_flags_of_other_macros_are_ignored() {
+    let inputs: Vec<DeriveInput> = vec![
+        parse_quote!(struct RawContext { #[context(unknown)] value: Value }),
+        parse_quote!(struct RawContext { #[context(skip, typo)] value: Value }),
+        parse_quote!(struct RawContext { #[context(skip_load, other_macro(field))] value: Value }),
+        parse_quote!(struct RawContext { #[context(read, ui_skip)] value: Option<Value> }),
+    ];
+    for input in inputs {
+        assert!(access::expand(input.clone()).is_ok());
+        assert!(load::expand(input).is_ok());
+    }
 }
 
 #[test]

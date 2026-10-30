@@ -4,7 +4,7 @@ use bincode::Encode;
 use sal_core::error::Error;
 use sal_sync::sync::channel::Sender;
 
-use crate::domain::Properties;
+use crate::{domain::Properties, kernel::JsonVal};
 
 ///
 /// Transactional [Snapshot]
@@ -14,7 +14,7 @@ use crate::domain::Properties;
 pub struct Snapshot {
     link: Sender<Event>,
     api_client: Arc<ApiClient>,
-    items: Vec<(String, String)>,
+    items: Vec<(String, JsonVal)>,
 }
 impl Snapshot {
     ///
@@ -89,8 +89,8 @@ impl Event {
         Event {}
     }
 }
-impl From<&Vec<(String, String)>> for Event {
-    fn from(value: &Vec<(String, String)>) -> Self {
+impl From<&Vec<(String, JsonVal)>> for Event {
+    fn from(value: &Vec<(String, JsonVal)>) -> Self {
         Self {  }
     }
 }
@@ -110,7 +110,7 @@ impl Upsert {
     pub fn new() -> Self {
         Self {}
     }
-    pub fn insert(&self, item: (String, String)) {
+    pub fn insert(&self, item: (String, JsonVal)) {
         
     }
     pub fn build(&self) -> Sql {
@@ -145,7 +145,7 @@ mod snapshot_tests {
         snapshot.add(&mock_data);
         assert_eq!(snapshot.items.len(), 1);
         assert_eq!(snapshot.items[0].0, "Mock.Property");
-        assert_eq!(snapshot.items[0].1, "{\"val\":42}");
+        assert_eq!(snapshot.items[0].1, serde_json::json!({"val":42}));
     }
     #[test]
     fn test_snapshot_multiple_adds() {
