@@ -44,7 +44,24 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                     ::sal_core::error::Error::new("ContextProperties", ::core::stringify!(#name))
                         .pass_with("serialize", err.to_string())
                 })?;
-                ::core::result::Result::Ok(::std::vec![(::std::string::String::from(#key), value)])
++                match value {
++                    ::serde_json::Value::Object(fields) => {
++                        let mut items = ::std::vec::Vec::with_capacity(fields.len());
++                        for (field, value) in fields {
++                            items.push((
++                                ::std::format!("{}.{}", #key, field),
++                                value,
++                            ));
++                        }
++                        ::core::result::Result::Ok(items)
++                    }
++                    // Newtype/tuple structs (например, ProjectId) не дают JSON-объекта.
++                    // Для них сохраняем прежний контракт: один ключ iec_id.
++                    value => ::core::result::Result::Ok(::std::vec![(
++                        ::std::string::String::from(#key),
++                        value,
++                    )]),
++                }
             }
         }
         impl #impl_generics crate::domain::Properties for &#name #type_generics #where_clause {
