@@ -47,10 +47,10 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
                 match value {
                     ::serde_json::Value::Object(fields) => {
                         let mut items = ::std::vec::Vec::with_capacity(fields.len());
-                        for (field, value) in fields {
+                        for (field, field_value) in fields {
                             items.push((
                                 ::std::format!("{}.{}", #key, field),
-                                value,
+                                field_value,
                             ));
                         }
                         ::core::result::Result::Ok(items)
