@@ -25,7 +25,7 @@ pub trait IecId {
     fn iec_id() -> &'static str;
 }
 pub trait Properties {
-    fn properties(&self) -> Result<Vec<(String, String)>, serde_json::Error>;
+    fn properties(&self) -> Result<Vec<(String, JsonVal)>, sal_core::error::Error>;
 }
 ```
 
@@ -55,8 +55,7 @@ pub trait Properties {
 Явный `#[context(read, read_ref, write)]` также корректен.
 
 Порядок флагов не влияет на результат. `skip` имеет приоритет над флагами
-доступа независимо от порядка. Неизвестные, повторные и некорректные флаги
-дают диагностическое сообщение компилятора, а не скрыто меняют генерацию.
+доступа независимо от порядка. Повторные флаги дают диагностическое сообщение компилятора.
 
 | Поле | `read()` | `read_ref()` | `write(value)` |
 | --- | --- | --- | --- |
@@ -90,8 +89,8 @@ let geometry: &HullGeometry = ctx.read_ref()
 ## ContextProperties
 
 Нужен единственный непустой `#[iec_id = "..."]`. Макрос реализует `IecId`
-и `Properties` для значения и ссылки. Всё значение сериализуется в один JSON
-под одним IEC-ключом; поля не раскладываются по отдельным ключам.
+и `Properties` для значения и ссылки. Всё значение сериализуется в одининдивидуальные JSON
+под своими IEC-ключом (`iec_id + field_name`).
 
 Ошибки сериализации возвращаются через `Err`, без `expect`.
 Generics, lifetimes, const generics и исходные `where` сохраняются.
@@ -123,9 +122,7 @@ JSON `null` не является командой очистки: он прох
 Для `Draft` или `Displacement` это ошибка; для типа, принимающего null,
 поведение определяется его десериализатором.
 
-`ContextProperties` возвращает JSON-текст. Перед `with_snapshot` этот текст
-нужно преобразовать через `serde_json::from_str::<serde_json::Value>`.
-Готовый `Value::String` с JSON-текстом не заменяет такое преобразование.
+`ContextProperties` возвращает JSON-Value.
 
 Отчёт имеет видимость исходной структуры. `ContextLoad` поддерживает generic
 структуры; ограничения загрузки накладываются только на загружаемые типы.
