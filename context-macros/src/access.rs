@@ -10,6 +10,8 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         return Err(syn::Error::new_spanned(&input.generics,
             "ContextAccess targets the fixed non-generic crate::domain::ContextTransaction; generic state structs are unsupported"));
     }
+    let name = &input.ident;
+    let mut property_arms = Vec::new();
     let mut generated = Vec::new();
     let mut impls = HashMap::<(&'static str, String), Ident>::new();
     for field in &fields.named {
@@ -54,6 +56,21 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             });
         }
         if flags.write {
+            let owner = if optional {
+                quote! { self.#field_name.as_ref().ok_or_else(||
+                    error.err(::std::format!("Context {prefix} is not initialized")))? }
+            } else {
+                quote! { &self.#field_name }
+            };
+            property_arms.push(quote! {
+                p if p == <#value_type as crate::domain::IecId>::iec_id() => {
+                    let owner: &#value_type = #owner;
+                    crate::domain::Properties::properties(owner)?.into_iter()
+                        .find(|(key, _)| key == iec_id)
+                        .map(|(_, value)| value)
+                        .ok_or_else(|| error.err(::std::format!("Unknown property: {iec_id}")))
+                }
+            });
             register("ContextWrite")?;
             let value = if optional { quote! { ::core::option::Option::Some(value) } } else { quote! { value } };
             generated.push(quote! {
@@ -66,5 +83,21 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
             });
         }
     }
-    Ok(quote! { #(#generated)* })
+    Ok(quote! {
+        #(#generated)*
+        impl #name {
+            /// Domain JSON of one writable property, using ContextProperties.
+            pub(crate) fn property_value(&self, iec_id: &str)
+                -> ::core::result::Result<crate::kernel::JsonVal, ::sal_core::error::Error>
+            {
+                let error = ::sal_core::error::Error::new(::core::any::type_name::<Self>(), "property_value");
+                let (prefix, _) = iec_id.rsplit_once('.')
+                    .ok_or_else(|| error.err(::std::format!("Invalid property key: {iec_id}")))?;
+                match prefix {
+                    #(#property_arms)*
+                    _ => ::core::result::Result::Err(error.err(::std::format!("Unknown property: {iec_id}"))),
+                }
+            }
+        }
+    })
 }
