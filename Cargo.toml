@@ -5,6 +5,7 @@ members = [
     "context-macros",       # Библиотека, Макрос #[derive(ContextAccess)]
     "event-opcode",         # Библиотека, Макрос #[derive(EventOpCode)]
     "context-ui-macros",    # Библиотека, Макрос #[derive(UiContextAccess, UiContextProperies)]
+    "context-db-macros",    # Библиотека, Макрос #[derive(DbContextAccess, DbContextProperies)]
     "use-context",  # Тестовое приложение
 ]
 

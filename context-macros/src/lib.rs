@@ -1,4 +1,5 @@
 //! Derive macros for MDMT context. See README.md for consumer contracts.
+//! 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
