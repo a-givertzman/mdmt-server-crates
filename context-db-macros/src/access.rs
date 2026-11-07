@@ -65,30 +65,30 @@ pub(crate) fn expand(input: DeriveInput) -> syn::Result<TokenStream> {
         });
         let write_body = if optional {
             quote! {
-                if self.#field_name.is_none() {
-                    let candidate = <#value_type as ::core::default::Default>::default();
-                    if !crate::domain::DbProperties::has_field(&candidate, field) {
-                        return ::core::result::Result::Err(
-                            crate::domain::DbContextAccessError::Unknown(
-                                ::sal_core::error::Error::new(::core::any::type_name::<Self>(), "db_write").err(
-                                    ::std::format!("Unknown field '{field}' for iec_id '{iec_id}'")
-                                )
-                            )
-                        );
-                    }
-                    self.#field_name = ::core::option::Option::Some(candidate);
-                }
                 match self.#field_name.as_mut() {
                     ::core::option::Option::Some(ctx) => {
                         crate::domain::DbProperties::write_json(ctx, iec_id, field, val)
                     }
-                    ::core::option::Option::None => ::core::result::Result::Err(
-                        crate::domain::DbContextAccessError::Err(
-                            ::sal_core::error::Error::new(::core::any::type_name::<Self>(), "db_write").err(
-                                ::std::format!("Context element is not initialized for iec_id '{iec_id}'")
+                    ::core::option::Option::None => {
+                        let mut candidate = <#value_type as ::core::default::Default>::default();
+                        if !crate::domain::DbProperties::has_field(&candidate, field) {
+                            ::core::result::Result::Err(
+                                crate::domain::DbContextAccessError::Unknown(
+                                    ::sal_core::error::Error::new(::core::any::type_name::<Self>(), "db_write").err(
+                                        ::std::format!("Unknown field '{field}' for iec_id '{iec_id}'")
+                                    )
+                                )
                             )
-                        )
-                    ),
+                        } else {
+                            match crate::domain::DbProperties::write_json(&mut candidate, iec_id, field, val) {
+                                ::core::result::Result::Ok(()) => {
+                                    self.#field_name = ::core::option::Option::Some(candidate);
+                                    ::core::result::Result::Ok(())
+                                }
+                                ::core::result::Result::Err(err) => ::core::result::Result::Err(err),
+                            }
+                        }
+                    }
                 }
             }
         } else {
