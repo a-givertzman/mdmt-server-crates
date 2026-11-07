@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use context_db_macros::DbContextProperties;
 use context_macros::ContextProperties;
 use get_size::GetSize;
 use serde::Deserialize;
@@ -10,7 +11,7 @@ use crate::algorithm::Ship;
 use crate::algorithm::ShipType;
 ///
 /// Общая структура для ввода данных. Содержит все данные для расчетов.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, ContextProperties, GetSize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ContextProperties, DbContextProperties, GetSize)]
 #[iec_id = "Ship.Initial"]
 pub struct InitialCtx {
     pub ship_id: String,

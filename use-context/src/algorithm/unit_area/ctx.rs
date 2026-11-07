@@ -1,3 +1,4 @@
+use context_db_macros::DbContextProperties;
 use context_macros::ContextProperties;
 use get_size::GetSize;
 use serde::{Deserialize, Serialize};
@@ -5,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::algorithm::Moment;
 
 /// Площади поверхности грузов
-#[derive(Debug, Clone, Serialize, Deserialize, ContextProperties, GetSize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ContextProperties, DbContextProperties, GetSize)]
 #[iec_id = "Ship.Stability.WindArea.UnitArea"]
 pub struct UnitAreaCtx {
     /// Площадь парусности палубного груза, м^2

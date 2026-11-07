@@ -1,10 +1,11 @@
+use context_db_macros::DbContextProperties;
 use get_size::GetSize;
 use context_macros::ContextProperties;
 use serde::{Deserialize, Serialize};
 
 ///
 /// Результаты расчета массива [кажущихся частот волнения](https://github.com/a-givertzman/sss/blob/50-guidance-to-the-master-according-to-msc1-circ1228/design/algorithm/part06_seakeeping/part06_seakeeping.md#порядок-расчета)
-#[derive(Debug, Clone, Serialize, Deserialize, ContextProperties, GetSize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, ContextProperties, DbContextProperties, GetSize)]
 #[iec_id = "Ship.Stability.ApparentFrequencies"]
 pub struct ApparentFrequenciesCtx {
     /// Массив [кажущихся частот волнения](https://github.com/a-givertzman/sss/blob/50-guidance-to-the-master-according-to-msc1-circ1228/design/algorithm/part06_seakeeping/part06_seakeeping.md#порядок-расчета)

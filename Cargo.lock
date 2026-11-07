@@ -1073,6 +1073,7 @@ dependencies = [
  "arc-swap",
  "bincode",
  "cgraph-macros",
+ "context-db-macros",
  "context-macros",
  "debugging",
  "get-size",

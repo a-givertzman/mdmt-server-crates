@@ -28,13 +28,13 @@ pub fn derive_context_properties(input: TokenStream) -> TokenStream {
     finish(properties::expand(parse_macro_input!(input as DeriveInput)))
 }
 
-/// Generate with_snapshot(self, properties) -> (Self, TypeLoadReport).
-/// Missing or invalid values preserve existing fields. skip_load excludes a
-/// field and its trait bounds. Duplicate IEC keys are reported, never applied.
-#[proc_macro_derive(ContextLoad, attributes(context))]
-pub fn derive_context_load(input: TokenStream) -> TokenStream {
-    finish(load::expand(parse_macro_input!(input as DeriveInput)))
-}
+// /// Generate with_snapshot(self, properties) -> (Self, TypeLoadReport).
+// /// Missing or invalid values preserve existing fields. skip_load excludes a
+// /// field and its trait bounds. Duplicate IEC keys are reported, never applied.
+// #[proc_macro_derive(ContextLoad, attributes(context))]
+// pub fn derive_context_load(input: TokenStream) -> TokenStream {
+//     finish(load::expand(parse_macro_input!(input as DeriveInput)))
+// }
 
 fn finish(result: syn::Result<proc_macro2::TokenStream>) -> TokenStream {
     match result {

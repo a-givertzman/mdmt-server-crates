@@ -1,12 +1,14 @@
+use context_db_macros::DbContextAccess;
 use get_size::GetSize;
-use context_macros::{ContextAccess, ContextLoad};
+use context_macros::ContextAccess;
+use sal_core::error::Error;
 use std::fmt::Debug;
 
-use crate::{algorithm::{ApparentFrequenciesCtx, Parameters, UnitAreaCtx}, domain::{InitialCtx}};
+use crate::{algorithm::{ApparentFrequenciesCtx, Parameters, UnitAreaCtx}, domain::InitialCtx, kernel::JsonVal};
 
 /// Сырой контекст для вычислений
 /// Без изменений берем из SSS
-#[derive(Debug, Clone, Default, ContextAccess, ContextLoad, GetSize)]
+#[derive(Debug, Clone, Default, ContextAccess, DbContextAccess, GetSize)]
 pub struct RawContext {
     /// Контроль версий для консистентности
     #[context(skip, skip_load)]
@@ -30,5 +32,10 @@ impl RawContext {
             initial,
             ..Self::default()
         }
+    }
+    ///
+    /// Загрузка значений контекста из БД
+    pub fn with_snapshot<S: AsRef<str>>(self, items: impl IntoIterator<Item = (S, JsonVal)>) -> Result<Self, Error> {
+        Err(Error::new("RawContext", "with_snapshot").err("Not implemented yet"))
     }
 }
